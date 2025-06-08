@@ -1,0 +1,762 @@
+{
+  "name": "Job Application Automation - LinkedIn",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        600
+      ],
+      "id": "78f930dd-13a9-4630-9881-e133c2f32ce7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://rss.app/feeds/UbrH1T0xhlh4Ngx5.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -980,
+        600
+      ],
+      "id": "a0631a76-80f5-45e8-ba25-3e7fea5fae23",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1XqASgsHsMiqjfUoT9l2Eyeuubk4iYb1JHw3jS2eG0ds",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XqASgsHsMiqjfUoT9l2Eyeuubk4iYb1JHw3jS2eG0ds/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cover Letter": "={{ $json.choices[0].message.content.cover_letter }}",
+            "Job Description": "={{ $('OpenAI').item.json.message.content.job_description }}",
+            "Benefits": "={{ $('OpenAI').item.json.message.content.benefits }}",
+            "Company Name": "={{ $('OpenAI').item.json.message.content.company_name }}",
+            "Rating": "={{ $('OpenAI1').item.json.choices[0].message.content.score }}",
+            "Date": "={{ $('Limit').item.json.pubDate }}",
+            "Link": "={{ $('Limit').item.json.link }}",
+            "Title": "={{ $('Limit').item.json.title }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Link",
+              "displayName": "Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rating",
+              "displayName": "Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Benefits",
+              "displayName": "Benefits",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Description",
+              "displayName": "Job Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cover Letter",
+              "displayName": "Cover Letter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        820,
+        600
+      ],
+      "id": "182ab309-63e3-45f4-9655-dad17e7ffcec",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wXo6rGxuYoHHk9Yc",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('RSS Read').item.json.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -540,
+        600
+      ],
+      "id": "c786a8a5-2068-4c5c-ab4d-5bfde74f4ff9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You're an intelligent bot capable of pulling out data from a job listing site.",
+              "role": "system"
+            },
+            {
+              "content": "=Here's the job site:\n {{ $json.data }}"
+            },
+            {
+              "content": "Please output the data in JSON format, using the following structure:\n\n{\n\"company_name\": \"\",\n\"benefits\": \"\", //401K plan, medical, etc, please separate by commas\n\"job_description\": \"\", //please make it 200 characters or less\n\"location\": \"\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -320,
+        600
+      ],
+      "id": "a963dc17-b386-4925-94c0-45ef9054830e",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "IFuS0OMBdaTai4J9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You're an intelligent bot perfect at creating cover letters for a job. Please take the candidates resume and create a customized cover letter to the job.",
+              "role": "system"
+            },
+            {
+              "content": "=Here's the job listing details:\nTitle: {{ $('RSS Read').item.json.title }}\nDescription: {{ $('OpenAI').item.json.message.content.job_description }}\nName: {{ $('OpenAI').item.json.message.content.company_name }}\nLocation: {{ $('OpenAI').item.json.message.content.location }}\n\nHere is the candidates skill set:\n📄 SAMPLE RESUME\n\nJordan Reyes\n📍 Vancouver, BC, Canada | 📧 jordan.reyes@email.com | 📞 (604) 555-9834 | 🌐 linkedin.com/in/jordanreyes | github.com/jordan-automation\n\n🎓 Education\nBachelor of Science – Computer Science\nUniversity of British Columbia, Vancouver, BC\nGraduated: May 2024 | GPA: 3.8/4.0\n\nRelevant coursework:\n\nArtificial Intelligence & Machine Learning\n\nCloud Computing & APIs\n\nData Structures & Algorithms\n\nSoftware Engineering for Automation\n\n💼 Experience\nAI Automation Engineer\nZapTech Solutions, Remote | Feb 2025 – Present\n\nBuilt over 20 workflow automations using Zapier, Make.com, and n8n to reduce manual processing time by 60%.\n\nIntegrated OpenAI’s GPT models into CRM and email systems for automated summarization, classification, and reply generation.\n\nDeveloped a custom lead qualification bot using LangChain and Voiceflow, increasing lead conversion rate by 32%.\n\nAutomated invoice and email parsing via Document AI, storing structured data into Google Sheets and Airtable.\n\nCollaborated cross-functionally with marketing and sales teams to implement automation solutions that saved over 100 hours/month.\n\nAutomation Developer (Intern)\nAutonomIQ Labs, Vancouver, BC | May 2024 – Aug 2024\n\nCreated internal tools using Python + Selenium for UI-based task automation.\n\nWorked on deploying AI workflows via RESTful APIs for Slack and CRM integrations.\n\nParticipated in agile sprint planning and contributed to automation testing using Playwright.\n\n🛠 Skills\nAI Tools & Platforms: OpenAI API, LangChain, Vapi, Voiceflow, ChatGPT, Synthflow\nAutomation: Zapier, Make.com, n8n, Python scripting, Google Apps Script\nAPIs & Integrations: REST APIs, Webhooks, Gmail API, Google Sheets API, Slack API\nData Handling: JSON, Regex, Pandas, Airtable\nSoft Skills: Analytical thinking, client communication, solution-oriented mindset, adaptability\n\n📚 Certifications\nMake.com Advanced Scenario Builder – Make Academy\n\nAI Workflow Design with OpenAI & Zapier – Udemy\n\nPython for Automation – Coursera"
+            },
+            {
+              "content": "Please return JSON data structured the following way:\n{\n\"cover_letter\": \"\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        440,
+        600
+      ],
+      "id": "5e4e52a4-fbd3-45a5-b0d8-b51033996d4a",
+      "name": "OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "IFuS0OMBdaTai4J9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You're an intelligent bot rating how closely a job listing is to a candidates skill set, on a score of 5.\nGive the following points:\na) 3 points for skills matching, 1 point for mostly matching\nb) 1 point for it being the right experience level\nc) 1 point for it being a remote position\nd) 1 point if past job experience matches the job role\ne) 1 point if the skills on the resume align with the job\nf) 3 points if I meet the job qualifications posted based on my resume",
+              "role": "system"
+            },
+            {
+              "content": "=Here's the job listing details:\n{{ $('HTTP Request').item.json.data }}\n\nHere is the candidates skill set:\n📄 SAMPLE RESUME\n\nJordan Reyes\n📍 Vancouver, BC, Canada | 📧 jordan.reyes@email.com | 📞 (604) 555-9834 | 🌐 linkedin.com/in/jordanreyes | github.com/jordan-automation\n\n🎓 Education\nBachelor of Science – Computer Science\nUniversity of British Columbia, Vancouver, BC\nGraduated: May 2024 | GPA: 3.8/4.0\n\nRelevant coursework:\n\nArtificial Intelligence & Machine Learning\n\nCloud Computing & APIs\n\nData Structures & Algorithms\n\nSoftware Engineering for Automation\n\n💼 Experience\nAI Automation Engineer\nZapTech Solutions, Remote | Feb 2025 – Present\n\nBuilt over 20 workflow automations using Zapier, Make.com, and n8n to reduce manual processing time by 60%.\n\nIntegrated OpenAI’s GPT models into CRM and email systems for automated summarization, classification, and reply generation.\n\nDeveloped a custom lead qualification bot using LangChain and Voiceflow, increasing lead conversion rate by 32%.\n\nAutomated invoice and email parsing via Document AI, storing structured data into Google Sheets and Airtable.\n\nCollaborated cross-functionally with marketing and sales teams to implement automation solutions that saved over 100 hours/month.\n\nAutomation Developer (Intern)\nAutonomIQ Labs, Vancouver, BC | May 2024 – Aug 2024\n\nCreated internal tools using Python + Selenium for UI-based task automation.\n\nWorked on deploying AI workflows via RESTful APIs for Slack and CRM integrations.\n\nParticipated in agile sprint planning and contributed to automation testing using Playwright.\n\n🛠 Skills\nAI Tools & Platforms: OpenAI API, LangChain, Vapi, Voiceflow, ChatGPT, Synthflow\nAutomation: Zapier, Make.com, n8n, Python scripting, Google Apps Script\nAPIs & Integrations: REST APIs, Webhooks, Gmail API, Google Sheets API, Slack API\nData Handling: JSON, Regex, Pandas, Airtable\nSoft Skills: Analytical thinking, client communication, solution-oriented mindset, adaptability\n\n📚 Certifications\nMake.com Advanced Scenario Builder – Make Academy\n\nAI Workflow Design with OpenAI & Zapier – Udemy\n\nPython for Automation – Coursera"
+            },
+            {
+              "content": "Please return JSON data structured the following way:\n{\n\"score\": \"\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "simplify": false,
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        60,
+        600
+      ],
+      "id": "7d828793-b8d2-4b69-a5ed-28a4313f679c",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "IFuS0OMBdaTai4J9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 3,
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -760,
+        600
+      ],
+      "id": "205057e2-1c53-453d-8526-efc7e7e0ad35",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "url": "https://rss.app/feeds/UbrH1T0xhlh4Ngx5.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        0
+      ],
+      "id": "51cb0320-e0d1-4cd9-9573-cf3c2dcdca34",
+      "name": "RSS Read1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "27561927-661d-437e-b29b-d26fd3aa8dbe",
+      "name": "Schedule Trigger1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "993ff775-0e35-4844-8b30-6d19f605cbfa",
+              "name": "RSS feeds",
+              "value": "[\"https://rss.app/feeds/eLi2CzXTaHeeHkNE.xml\", \"https://rss.app/feeds/eLi2CzXTaHeeHkNE.xml\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "aeaf6500-fb18-4107-8c93-4bcd2f3cddfa",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "['RSS feeds']",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "948617e5-5d0c-4a30-95df-613765830baa",
+      "name": "Split Out"
+    }
+  ],
+  "pinData": {
+    "RSS Read": [
+      {
+        "json": {
+          "creator": "LinkedIn",
+          "title": "3,000+ AI Automation Engineer jobs in MENA",
+          "link": "https://www.linkedin.com/jobs/ai-automation-engineer-jobs-mena",
+          "pubDate": "Sun, 30 Mar 2025 00:00:00 GMT",
+          "dc:creator": "LinkedIn",
+          "content": "Today's top 3,000+ AI Automation Engineer jobs in MENA. Leverage your professional network, and get hired. New AI Automation Engineer jobs added daily.",
+          "contentSnippet": "Today's top 3,000+ AI Automation Engineer jobs in MENA. Leverage your professional network, and get hired. New AI Automation Engineer jobs added daily.",
+          "guid": "6fa0d814581140b696ba414b14ad9421",
+          "isoDate": "2025-03-30T00:00:00.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "LinkedIn",
+          "title": "تقوم شركة Yokogawa بالتوظيف لوظيفة Robotics Engineer - SA في الشرقية الخبر السعودية ",
+          "link": "https://sa.linkedin.com/jobs/view/robotics-engineer-sa-at-yokogawa-4244522760",
+          "pubDate": "Wed, 04 Jun 2025 16:00:42 GMT",
+          "dc:creator": "LinkedIn",
+          "content": "<div><img src=\"https://static.licdn.com/aero-v1/sc/h/xlk678jv0tjp79pv10kglzkf\" style=\"width: 100%;\" /><div><strong>Not just a job, but a career<br><br></strong>Yokogawa, award winner for ‘Best Asset Monitoring Technology’ and ‘Best Digital Twin Technology’ at the HP Awards, is a leading provider of industrial automation, test and measurement, information systems and industrial services in several industries.<br><br>Our aim is to shape a better future for our planet through supporting the energy transition, (bio)technology, artificial intelligence, industrial cybersecurity, etc. We are committed to the United Nations sustainable development goals by utilizing our ability to measure and connect.<br><br><strong>About The Team<br><br></strong>Our 18,000 employees work in over 60 countries with one corporate mission, to \"co-innovate tomorrow\". We are looking for dynamic colleagues who share our passion for technology and care for our planet. In return, we offer you great career opportunities to grow yourself in a truly global culture where respect, value creation, collaboration, integrity, and gratitude are highly valued and exhibited in everything we do.<br><br><strong>Key Responsibilities & Accountabilities<br><br></strong><ul><li>Collaborate with multidisciplinary teams for the development and implementation of robotics solutions.</li><li>Handle system integration and testing of robotic OEM platforms (using SDKs) with Yokogawa Systems.</li><li>Evaluate and integrate third-party systems (HW/SW) to Yokogawa Systems.</li><li>Explore new technologies in line with customer requirement/ new use cases on robotics and develop a pilot trial methodology/ proposal.</li><li>Collaboration with various robotics OEMs to scope out data integration, perform site trials, troubleshooting and improvements on autonomous robotics platforms.</li><li>Provide technical support to field operators and other stakeholders.</li><li>Conduct feasibility studies for robotics implementation and value add for customers with adoption of robotics technologies.</li><li>Carry out site survey with field risk assessment and develop appropriate implementation plans for robotics solutions.</li><li>Need to be up to date with the latest advancements in robotics and field inspection technologies. (ex. IIoT)<br><br></li></ul><strong>Qualification And Experience<br><br></strong><ul><li>Bachelor’s or Master’s degree in Robotics / Mechatronics, Electrical/ Electronic or similar fields.</li><li>Minimum 3 years of experience in field robotics implementation, robotics inspections, and integration of robotics platforms using OEM SDKs.</li><li>Experience on implementation/pilot trials with autonomous inspection robotics platforms.</li><li>Experience in project management working with interdisciplinary teams</li><li>Experience in Oil & Gas and/or Utilities.<br><br></li></ul><strong>Competencies<br><br></strong><ul><li>Proficiency in programming languages such as Python, C++, MATLAB etc.</li><li>Proven experience with robotics simulation tools and environments (e.g. ROS, ROS 2) , SLAM Algorithms etc.</li><li>Familiarity with Git-based workflows</li><li>Strong knowledge of the latest AI developments, with experience in AI training, data selection, and proficiency in Python for AI tasks and integration.</li><li>Strong knowledge of robotics systems (hardware – example ExRobotics, Boston Dynamics, ANYBotics, MHI, Taurob, Deep Robotics etc), including sensor payloads and safety standards (hazardous area classifications).</li><li>Familiar with robot communication networking aspects – 4G,5G, On-premises/Cloud infrastructure etc.</li><li>Knowledge of Linux Systems<br><br></li></ul><strong>Skills<br><br></strong><ul><li>Proficiency in spoken and written English</li><li>Strong problem-solving skills and communication skills to articulate technical concepts to non-technical stakeholders</li><li>Familiar with CAD, SolidWorks etc.</li><li>Familiar with Industry 4.0 and IoT<br><br></li></ul>Yokogawa is an Equal Opportunity Employer. Yokogawa wants a diverse, equitable and inclusive culture. We will actively recruit, develop, and promote people from a variety of backgrounds who differ in terms of experience, knowledge, thinking styles, perspective, cultural background, and socioeconomic status. We will not discriminate based on race, skin color, age, sex, gender identity and expression, sexual orientation, religion, belief, political opinion, nationality, ethnicity, place of origin, disability, family relations or any other circumstances. Yokogawa values differences and enables everyone to belong, contribute, succeed, and demonstrate their full potential.<br><br>Are you being referred to one of our roles? If so, ask your connection at Yokogawa<br><br>about our Employee Referral process!</div></div>",
+          "contentSnippet": "Not just a job, but a career\nYokogawa, award winner for ‘Best Asset Monitoring Technology’ and ‘Best Digital Twin Technology’ at the HP Awards, is a leading provider of industrial automation, test and measurement, information systems and industrial services in several industries.\nOur aim is to shape a better future for our planet through supporting the energy transition, (bio)technology, artificial intelligence, industrial cybersecurity, etc. We are committed to the United Nations sustainable development goals by utilizing our ability to measure and connect.\nAbout The Team\nOur 18,000 employees work in over 60 countries with one corporate mission, to \"co-innovate tomorrow\". We are looking for dynamic colleagues who share our passion for technology and care for our planet. In return, we offer you great career opportunities to grow yourself in a truly global culture where respect, value creation, collaboration, integrity, and gratitude are highly valued and exhibited in everything we do.\nKey Responsibilities & Accountabilities\n\nCollaborate with multidisciplinary teams for the development and implementation of robotics solutions.\nHandle system integration and testing of robotic OEM platforms (using SDKs) with Yokogawa Systems.\nEvaluate and integrate third-party systems (HW/SW) to Yokogawa Systems.\nExplore new technologies in line with customer requirement/ new use cases on robotics and develop a pilot trial methodology/ proposal.\nCollaboration with various robotics OEMs to scope out data integration, perform site trials, troubleshooting and improvements on autonomous robotics platforms.\nProvide technical support to field operators and other stakeholders.\nConduct feasibility studies for robotics implementation and value add for customers with adoption of robotics technologies.\nCarry out site survey with field risk assessment and develop appropriate implementation plans for robotics solutions.\nNeed to be up to date with the latest advancements in robotics and field inspection technologies. (ex. IIoT)\n\nQualification And Experience\n\nBachelor’s or Master’s degree in Robotics / Mechatronics, Electrical/ Electronic or similar fields.\nMinimum 3 years of experience in field robotics implementation, robotics inspections, and integration of robotics platforms using OEM SDKs.\nExperience on implementation/pilot trials with autonomous inspection robotics platforms.\nExperience in project management working with interdisciplinary teams\nExperience in Oil & Gas and/or Utilities.\n\nCompetencies\n\nProficiency in programming languages such as Python, C++, MATLAB etc.\nProven experience with robotics simulation tools and environments (e.g. ROS, ROS 2) , SLAM Algorithms etc.\nFamiliarity with Git-based workflows\nStrong knowledge of the latest AI developments, with experience in AI training, data selection, and proficiency in Python for AI tasks and integration.\nStrong knowledge of robotics systems (hardware – example ExRobotics, Boston Dynamics, ANYBotics, MHI, Taurob, Deep Robotics etc), including sensor payloads and safety standards (hazardous area classifications).\nFamiliar with robot communication networking aspects – 4G,5G, On-premises/Cloud infrastructure etc.\nKnowledge of Linux Systems\n\nSkills\n\nProficiency in spoken and written English\nStrong problem-solving skills and communication skills to articulate technical concepts to non-technical stakeholders\nFamiliar with CAD, SolidWorks etc.\nFamiliar with Industry 4.0 and IoT\n\nYokogawa is an Equal Opportunity Employer. Yokogawa wants a diverse, equitable and inclusive culture. We will actively recruit, develop, and promote people from a variety of backgrounds who differ in terms of experience, knowledge, thinking styles, perspective, cultural background, and socioeconomic status. We will not discriminate based on race, skin color, age, sex, gender identity and expression, sexual orientation, religion, belief, political opinion, nationality, ethnicity, place of origin, disability, family relations or any other circumstances. Yokogawa values differences and enables everyone to belong, contribute, succeed, and demonstrate their full potential.\nAre you being referred to one of our roles? If so, ask your connection at Yokogawa\nabout our Employee Referral process!",
+          "guid": "58586b247b60257881174921b18be6e4",
+          "isoDate": "2025-06-04T16:00:42.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "LinkedIn",
+          "title": "تقوم شركة Migrate بالتوظيف لوظيفة Artificial Intelligence (AI) and Machine Learning (ML) Engineer في عمان عمان الأردن ",
+          "link": "https://jo.linkedin.com/jobs/view/artificial-intelligence-ai-and-machine-learning-ml-engineer-at-migrate-4218802515",
+          "pubDate": "Wed, 30 Apr 2025 11:39:10 GMT",
+          "dc:creator": "LinkedIn",
+          "content": "<div><img src=\"https://static.licdn.com/aero-v1/sc/h/xlk678jv0tjp79pv10kglzkf\" style=\"width: 100%;\" /><div>Job Title: <strong>Artificial Intelligence (AI) and Machine Learning (ML) Engineer<br></strong> <br><ul><li>Design, develop, and support advanced digital solutions using Fourth Industrial Revolution (4IR) technologies.</li><li>Deliver professional support services to implement AI and ML-driven initiatives aligned with business goals.<br><br></li></ul><strong>Requirements<br><br></strong><ul><li> Minimum 3+ years of experience in the field of Information and Communications Technology within a large organization. </li><li> Minimum 1+ year of relevant working experience specifically in AI and ML engineering or related roles. </li><li>Solid knowledge of project management practices and methodologies.</li><li>Professionally certified in a technical area related to AI, ML, or software engineering.</li><li>Strong understanding of digital trends, particularly in artificial intelligence and machine learning applications.</li><li> Preferred Certifications: Agile Delivery (e.g., PMI-ACP, PSM). <br><br></li></ul><strong>Education<br><br></strong><ul><li>Bachelor’s degree in a relevant specialization (required).</li><li>Master’s degree in a related business or technical field (preferred).<br><br></li></ul><strong>Language Skills<br><br></strong><ul><li>Excellent command of written, spoken, and read English (required).</li><li>Arabic – Native (desirable).<br><br></li></ul><strong>Key Competencies<br><br></strong><ul><li>Strong communication, organizational, and interpersonal skills.</li><li>Highly analytical and strategic thinker with a data-driven mindset.</li><li>Ability to manage and prioritize tasks in a multi-tasking and dynamic environment.</li><li>Expertise in business and process analysis.</li><li>Skilled at building, maintaining, and extending professional relationships across teams.</li><li>Ability to recognize patterns and address complex technical challenges.</li><li>Capability to map current requirements to industry and competitive trends.</li><li>Proactive in adopting innovative technologies and methodologies to enhance AI/ML efficiency.</li></ul></div></div>",
+          "contentSnippet": "Job Title: Artificial Intelligence (AI) and Machine Learning (ML) Engineer\n \n\nDesign, develop, and support advanced digital solutions using Fourth Industrial Revolution (4IR) technologies.\nDeliver professional support services to implement AI and ML-driven initiatives aligned with business goals.\n\nRequirements\n\n Minimum 3+ years of experience in the field of Information and Communications Technology within a large organization. \n Minimum 1+ year of relevant working experience specifically in AI and ML engineering or related roles. \nSolid knowledge of project management practices and methodologies.\nProfessionally certified in a technical area related to AI, ML, or software engineering.\nStrong understanding of digital trends, particularly in artificial intelligence and machine learning applications.\n Preferred Certifications: Agile Delivery (e.g., PMI-ACP, PSM). \n\nEducation\n\nBachelor’s degree in a relevant specialization (required).\nMaster’s degree in a related business or technical field (preferred).\n\nLanguage Skills\n\nExcellent command of written, spoken, and read English (required).\nArabic – Native (desirable).\n\nKey Competencies\n\nStrong communication, organizational, and interpersonal skills.\nHighly analytical and strategic thinker with a data-driven mindset.\nAbility to manage and prioritize tasks in a multi-tasking and dynamic environment.\nExpertise in business and process analysis.\nSkilled at building, maintaining, and extending professional relationships across teams.\nAbility to recognize patterns and address complex technical challenges.\nCapability to map current requirements to industry and competitive trends.\nProactive in adopting innovative technologies and methodologies to enhance AI/ML efficiency.",
+          "guid": "7b6de25bcb1cb8c8fd909d51c982e30c",
+          "isoDate": "2025-04-30T11:39:10.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "LinkedIn",
+          "title": "تقوم شركة Advansys بالتوظيف لوظيفة Junior Machine Learning Engineer في القاهرة مدينه نصر مصر ",
+          "link": "https://eg.linkedin.com/jobs/view/junior-machine-learning-engineer-at-advansys-4233827465",
+          "pubDate": "Tue, 20 May 2025 19:08:58 GMT",
+          "dc:creator": "LinkedIn",
+          "content": "<div><img src=\"https://static.licdn.com/aero-v1/sc/h/xlk678jv0tjp79pv10kglzkf\" style=\"width: 100%;\" /><div>Advansys is looking for a Junior Machine Learning Engineer to join our dynamic team. This is an excellent opportunity for recent graduates or individuals with foundational experience in machine learning to advance their careers in a supportive and innovative environment. You will assist in the development, implementation, and monitoring of machine learning models and algorithms.<br><br>Key responsibilities include:<br><br><ul><li>Assisting in the design and implementation of machine learning models under the guidance of senior engineers</li><li>Conducting data cleaning and preprocessing to prepare datasets for training models</li><li>Supporting the evaluation and fine-tuning of machine learning algorithms</li><li>Collaborating with cross-functional teams to understand project requirements and objectives</li><li>Documenting processes, model training, and outcomes clearly and comprehensively</li><li>Staying updated with industry trends and best practices in machine learning and AI</li><li>Participating in team meetings and contributing to brainstorming sessions<br><br><br></li></ul><strong>Requirements<br><br></strong><ul><li>Bachelor's degree in Computer Science, Data Science, Artificial Intelligence, or a related field</li><li>Basic understanding of machine learning concepts and algorithms</li><li>Familiarity with programming languages such as Python or R, and experience with ML libraries (e.g., scikit-learn, TensorFlow, or Keras)</li><li>Experience with data manipulation and analysis tools such as Pandas and NumPy</li><li>Strong analytical and problem-solving skills</li><li>Good communication skills and the ability to work effectively in a team environment</li><li>Enthusiasm for learning new technologies and techniques in AI/ML</li><li>Internship or project experience in machine learning or data analysis is a plus<br><br><br></li></ul><strong>Benefits<br><br></strong><strong>What We Offer:<br><br></strong><ul><li> Hands-on experience working on real-world AI/ML projects</li><li> Mentorship and guidance from experienced AI/ML professionals</li><li> Opportunity to learn and apply cutting-edge technologies</li><li> Collaborative and supportive work environment</li><li> Competitive internship compensation<br><br></li></ul>This internship will be from 1 to 3 Months</div></div>",
+          "contentSnippet": "Advansys is looking for a Junior Machine Learning Engineer to join our dynamic team. This is an excellent opportunity for recent graduates or individuals with foundational experience in machine learning to advance their careers in a supportive and innovative environment. You will assist in the development, implementation, and monitoring of machine learning models and algorithms.\nKey responsibilities include:\n\nAssisting in the design and implementation of machine learning models under the guidance of senior engineers\nConducting data cleaning and preprocessing to prepare datasets for training models\nSupporting the evaluation and fine-tuning of machine learning algorithms\nCollaborating with cross-functional teams to understand project requirements and objectives\nDocumenting processes, model training, and outcomes clearly and comprehensively\nStaying updated with industry trends and best practices in machine learning and AI\nParticipating in team meetings and contributing to brainstorming sessions\n\n\nRequirements\n\nBachelor's degree in Computer Science, Data Science, Artificial Intelligence, or a related field\nBasic understanding of machine learning concepts and algorithms\nFamiliarity with programming languages such as Python or R, and experience with ML libraries (e.g., scikit-learn, TensorFlow, or Keras)\nExperience with data manipulation and analysis tools such as Pandas and NumPy\nStrong analytical and problem-solving skills\nGood communication skills and the ability to work effectively in a team environment\nEnthusiasm for learning new technologies and techniques in AI/ML\nInternship or project experience in machine learning or data analysis is a plus\n\n\nBenefits\nWhat We Offer:\n\n Hands-on experience working on real-world AI/ML projects\n Mentorship and guidance from experienced AI/ML professionals\n Opportunity to learn and apply cutting-edge technologies\n Collaborative and supportive work environment\n Competitive internship compensation\n\nThis internship will be from 1 to 3 Months",
+          "guid": "c41c381996299e95edde148cc797bf30",
+          "isoDate": "2025-05-20T19:08:58.000Z"
+        }
+      },
+      {
+        "json": {
+          "creator": "LinkedIn",
+          "title": "تقوم شركة Dicetek LLC بالتوظيف لوظيفة AI & Automation Architect في أبو ظبي ",
+          "link": "https://ae.linkedin.com/jobs/view/ai-automation-architect-at-dicetek-llc-4110456444",
+          "pubDate": "Fri, 27 Dec 2024 00:53:33 GMT",
+          "dc:creator": "LinkedIn",
+          "content": "<div><img src=\"https://static.licdn.com/aero-v1/sc/h/xlk678jv0tjp79pv10kglzkf\" style=\"width: 100%;\" /><div>Extensive hands-on experience with AI-driven automation tools, machine learning models, and platforms like ServiceNow, SolarWinds, Dynatrace, and Nexthink. Experience with scripting languages (e.g., Python), Knowledge of RESTful APIs and experience in developing custom AI and automation integrations.<br><br><strong>Position Title:</strong> Expert AI and Automation Architect<br><br><strong>Experience Level:</strong> 15+ Years<br><br><strong>Role Overview<br><br></strong>We are looking for an Expert AI and Automation Architect with 15+ years of experience in designing, implementing, and managing AI and automation frameworks across enterprise IT environments. The ideal candidate will have deep expertise in integrating AI-driven automation within monitoring and service management platforms, specifically SolarWinds, Dynatrace, Nexthink, and ServiceNow. This role requires a forward-thinking individual who can leverage AI to enhance IT operations, automate routine tasks, and improve decision-making processes.<br><br><strong>Key Responsibilities<br><br></strong><ul><li>Architect and Design AI and Automation Solutions:</li><li>Lead the design and architecture of AI-driven automation frameworks integrated with SolarWinds, Dynatrace, Nexthink, and ServiceNow.</li><li>Ensure that the AI and automation solutions are scalable, reliable, and capable of enhancing IT operations, service management, and digital experience management.</li><li>Implementation and Configuration:</li><li>Oversee the deployment and configuration of AI-driven automation tools within the ServiceNow platform and across integrated monitoring solutions.</li><li>Customize AI models and automation workflows to align with organizational goals, enhancing incident response, problem resolution, and service delivery.</li><li>Integration Management:</li><li>Design and implement AI-driven automation across the integrated platforms (SolarWinds, Dynatrace, Nexthink, and ServiceNow) to support predictive analytics, automated remediation, and proactive monitoring.</li><li>Develop and maintain machine learning models and automation scripts that facilitate real-time data processing, incident prediction, and intelligent decision-making.</li><li>AI-Powered Monitoring and Incident Management:</li><li>Leverage AI to enhance the monitoring capabilities of SolarWinds, Dynatrace, and Nexthink, enabling predictive maintenance, anomaly detection, and automated incident resolution.</li><li>Integrate AI-driven insights into ServiceNow to optimize ITSM processes, reducing Mean Time to Resolution (MTTR) and improving service efficiency.</li><li>Automation Strategy and Best Practices:</li><li>Develop and enforce best practices for AI and automation across IT operations, ensuring alignment with business objectives.</li><li>Create and implement strategies to measure and improve key performance indicators (KPIs) such as operational efficiency, service availability, and employee productivity through automation.<br><br></li></ul><strong>Required Qualifications<br><br></strong><ul><li>Experience: 15+ years of experience in IT, with at least 10 years focused on AI and automation architecture, design, management, and integration.</li><li>Technical Expertise: Extensive hands-on experience with AI-driven automation tools, machine learning models, and platforms like ServiceNow, SolarWinds, Dynatrace, and Nexthink.</li><li>Integration Skills: Proven experience in integrating AI and automation solutions with monitoring and service management platforms.</li><li>Architecture and Design: Proven track record of designing and implementing large-scale AI and automation frameworks in enterprise environments.</li><li>AI/ML Expertise: Expertise in developing and deploying machine learning models and AI algorithms for IT operations and service management.</li><li>Troubleshooting: Strong problem-solving skills with the ability to troubleshoot complex issues in AI and automation frameworks and their integrations.</li><li>Collaboration: Excellent communication skills, with the ability to work effectively with cross-functional teams and stakeholders.</li><li>Certifications: Relevant certifications in AI, machine learning, and automation are highly preferred.</li></ul></div></div>",
+          "contentSnippet": "Extensive hands-on experience with AI-driven automation tools, machine learning models, and platforms like ServiceNow, SolarWinds, Dynatrace, and Nexthink. Experience with scripting languages (e.g., Python), Knowledge of RESTful APIs and experience in developing custom AI and automation integrations.\nPosition Title: Expert AI and Automation Architect\nExperience Level: 15+ Years\nRole Overview\nWe are looking for an Expert AI and Automation Architect with 15+ years of experience in designing, implementing, and managing AI and automation frameworks across enterprise IT environments. The ideal candidate will have deep expertise in integrating AI-driven automation within monitoring and service management platforms, specifically SolarWinds, Dynatrace, Nexthink, and ServiceNow. This role requires a forward-thinking individual who can leverage AI to enhance IT operations, automate routine tasks, and improve decision-making processes.\nKey Responsibilities\n\nArchitect and Design AI and Automation Solutions:\nLead the design and architecture of AI-driven automation frameworks integrated with SolarWinds, Dynatrace, Nexthink, and ServiceNow.\nEnsure that the AI and automation solutions are scalable, reliable, and capable of enhancing IT operations, service management, and digital experience management.\nImplementation and Configuration:\nOversee the deployment and configuration of AI-driven automation tools within the ServiceNow platform and across integrated monitoring solutions.\nCustomize AI models and automation workflows to align with organizational goals, enhancing incident response, problem resolution, and service delivery.\nIntegration Management:\nDesign and implement AI-driven automation across the integrated platforms (SolarWinds, Dynatrace, Nexthink, and ServiceNow) to support predictive analytics, automated remediation, and proactive monitoring.\nDevelop and maintain machine learning models and automation scripts that facilitate real-time data processing, incident prediction, and intelligent decision-making.\nAI-Powered Monitoring and Incident Management:\nLeverage AI to enhance the monitoring capabilities of SolarWinds, Dynatrace, and Nexthink, enabling predictive maintenance, anomaly detection, and automated incident resolution.\nIntegrate AI-driven insights into ServiceNow to optimize ITSM processes, reducing Mean Time to Resolution (MTTR) and improving service efficiency.\nAutomation Strategy and Best Practices:\nDevelop and enforce best practices for AI and automation across IT operations, ensuring alignment with business objectives.\nCreate and implement strategies to measure and improve key performance indicators (KPIs) such as operational efficiency, service availability, and employee productivity through automation.\n\nRequired Qualifications\n\nExperience: 15+ years of experience in IT, with at least 10 years focused on AI and automation architecture, design, management, and integration.\nTechnical Expertise: Extensive hands-on experience with AI-driven automation tools, machine learning models, and platforms like ServiceNow, SolarWinds, Dynatrace, and Nexthink.\nIntegration Skills: Proven experience in integrating AI and automation solutions with monitoring and service management platforms.\nArchitecture and Design: Proven track record of designing and implementing large-scale AI and automation frameworks in enterprise environments.\nAI/ML Expertise: Expertise in developing and deploying machine learning models and AI algorithms for IT operations and service management.\nTroubleshooting: Strong problem-solving skills with the ability to troubleshoot complex issues in AI and automation frameworks and their integrations.\nCollaboration: Excellent communication skills, with the ability to work effectively with cross-functional teams and stakeholders.\nCertifications: Relevant certifications in AI, machine learning, and automation are highly preferred.",
+          "guid": "923e3704f2bdde29a98550275bb83e49",
+          "isoDate": "2024-12-27T00:53:33.000Z"
+        }
+      }
+    ],
+    "OpenAI": [
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": {
+              "company_name": "Migrate",
+              "benefits": "",
+              "job_description": "Design, develop, and support advanced digital solutions using Fourth Industrial Revolution (4IR) technologies.",
+              "location": "عمان عمان الأردن"
+            },
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": {
+              "company_name": "Advansys",
+              "benefits": "Hands-on experience working on real-world AI/ML projects, Mentorship and guidance from experienced AI/ML professionals, Opportunity to learn and apply cutting-edge technologies, Collaborative and supportive work environment, Competitive internship compensation",
+              "job_description": "Advansys is looking for a Junior Machine Learning Engineer to join our dynamic team. This is an excellent opportunity for recent graduates or individuals with foundational experience in machine learning.",
+              "location": "القاهرة مدينه نصر مصر"
+            },
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      },
+      {
+        "json": {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": {
+              "company_name": "Dicetek LLC",
+              "benefits": "",
+              "job_description": "We are looking for an Expert AI and Automation Architect with 15+ years of experience in designing, implementing, and managing AI and automation frameworks across enterprise IT environments.",
+              "location": "أبو ظبي"
+            },
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      }
+    ],
+    "OpenAI1": [
+      {
+        "json": {
+          "id": "chatcmpl-Bg1BSLCgXZWMLHGGcfEzXDhNrU7P5",
+          "object": "chat.completion",
+          "created": 1749354026,
+          "model": "gpt-4o-mini-2024-07-18",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": {
+                  "score": 5
+                },
+                "refusal": null,
+                "annotations": []
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 72770,
+            "completion_tokens": 9,
+            "total_tokens": 72779,
+            "prompt_tokens_details": {
+              "cached_tokens": 72704,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          },
+          "service_tier": "default",
+          "system_fingerprint": "fp_34a54ae93c"
+        }
+      },
+      {
+        "json": {
+          "id": "chatcmpl-Bg1BUAn6mrgCv6d5GjjcUxtXNB6yr",
+          "object": "chat.completion",
+          "created": 1749354028,
+          "model": "gpt-4o-mini-2024-07-18",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": {
+                  "score": 5
+                },
+                "refusal": null,
+                "annotations": []
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 39584,
+            "completion_tokens": 9,
+            "total_tokens": 39593,
+            "prompt_tokens_details": {
+              "cached_tokens": 39552,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          },
+          "service_tier": "default",
+          "system_fingerprint": "fp_34a54ae93c"
+        }
+      },
+      {
+        "json": {
+          "id": "chatcmpl-Bg1BXwf8nqlZYKu0Y1b7Zd15mBY8s",
+          "object": "chat.completion",
+          "created": 1749354031,
+          "model": "gpt-4o-mini-2024-07-18",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": {
+                  "score": 5
+                },
+                "refusal": null,
+                "annotations": []
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 40109,
+            "completion_tokens": 9,
+            "total_tokens": 40118,
+            "prompt_tokens_details": {
+              "cached_tokens": 40064,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          },
+          "service_tier": "default",
+          "system_fingerprint": "fp_34a54ae93c"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "RSS Read1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5ecef0db-f6a0-4a83-b8b8-10992d571dc1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4275106c8fd02c2533edab3f7741b7db420af0691c825fa5d46bbabd00ca51b7"
+  },
+  "id": "47R1HM8NAWZFbkOF",
+  "tags": []
+}
